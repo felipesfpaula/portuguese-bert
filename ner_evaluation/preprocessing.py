@@ -7,8 +7,8 @@ from argparse import Namespace
 from typing import (Dict, List, Optional)
 import torch
 
-from tag_encoder import NERTagsEncoder, SCHEMES
-from tokenization import (
+from .tag_encoder import NERTagsEncoder, SCHEMES
+from .tokenization import (
     Token,
     TokenizerWithAlignment,
     reconstruct_text_from_tokens,
@@ -179,6 +179,37 @@ def read_examples(input_file: str,
 
     return examples
 
+def read_examples_conll(input_file: str,
+                  is_training: bool,
+                  classes: List[str] = None,
+                  scheme: str = 'BIO',
+                  ) -> List[Example]:
+    
+    with open(input_file, "r", encoding='utf-8') as reader:
+        input_data = reader.read()
+    
+    tokenizer_with_alignment = TokenizerWithAlignment()
+    tokens, tags = deconnll_text(input_data)
+    doc_tokens, char_to_word_offset = tokenizer_with_alignment(" ".join(tokens))
+    print(len(tokens), len(tags), len(doc_tokens))
+    examples = []
+    #" ".join( [token.text for token in doc_tokens])
+    return examples
+
+def deconnll_text(raw_input):
+    
+    tokens = []
+    tags = []
+    for sent in raw_input.split("\n\n"):
+        for line in sent.split("\n"):
+            if len(line) < 2:
+                continue #hack invis character
+            token , tag = line.split(" ")
+            tokens.append(token)
+            tags.append(tag)
+        #tokens.append("\n")
+    
+    return tokens, tags
 
 class InputSpan(object):
     """A single set of features of data."""
